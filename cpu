@@ -1,0 +1,85 @@
+module cpu(
+    input clk,
+    input reset
+);
+
+    // Define 16 general-purpose registers (16-bit each)
+    reg [15:0] registers [15:0];
+    reg [15:0] pc;          // Program Counter
+    reg [15:0] ir;          // Instruction Register
+    reg [15:0] memory [0:65535]; // Memory (64K)
+
+    // Instruction format
+    wire [4:0] opcode;
+    wire [3:0] r1, r2, r3;
+    wire [15:0] addr, imm;
+    wire [15:0] reg1, reg2, reg3;
+
+    assign {opcode, r1, r2, r3, addr} = ir;
+    assign reg1 = registers[r1];
+    assign reg2 = registers[r2];
+    assign reg3 = registers[r3];
+
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            pc <= 16'h0000;
+        end else begin
+            // Fetch instruction
+            ir <= memory[pc];
+            pc <= pc + 1;
+
+            // Decode and Execute
+            case (opcode)
+                // Arithmetic Instructions
+                5'b00000: registers[r1] <= reg2 + reg3; // ADD
+                5'b00001: registers[r1] <= reg2 - reg3; // SUB
+                5'b00010: registers[r1] <= reg2 * reg3; // MUL
+                5'b00011: registers[r1] <= reg2 / reg3; // DIV
+                5'b00100: registers[r1] <= reg1 + 1;    // INC
+                5'b00101: registers[r1] <= reg1 - 1;    // DEC
+
+                // Logical Instructions
+                5'b00110: registers[r1] <= reg2 & reg3; // AND
+                5'b00111: registers[r1] <= reg2 | reg3; // OR
+                5'b01000: registers[r1] <= reg2 ^ reg3; // XOR
+                5'b01001: registers[r1] <= ~reg2;       // NOT
+
+                // Control Flow Instructions
+                5'b01010: pc <= addr;                   // JMP
+                5'b01011: if (reg1 == reg2) pc <= addr; // BEQ
+                5'b01100: if (reg1 != reg2) pc <= addr; // BNE
+                5'b01101: begin                         // CALL
+                    memory[pc] <= pc + 1;
+                    pc <= addr;
+                end
+                5'b01110: pc <= memory[pc];            // RET
+
+                // Memory Access Instructions
+                5'b01111: registers[r1] <= memory[addr]; // LD
+                5'b10000: memory[addr] <= reg1;        // ST
+
+                // Custom Instructions
+                5'b10001: begin                         // FFT
+                    // FFT Operation (Stubbed)
+                    // FFT operation would require external modules or detailed implementation
+                    // Here we'll just simulate a no-op
+                    registers[r1] <= registers[r2];
+                end
+                5'b10010: begin                         // ENC
+                    // Encryption Operation (Stubbed)
+                    // Encryption would require external modules or detailed implementation
+                    // Here we'll just simulate a no-op
+                    registers[r1] <= registers[r2];
+                end
+                5'b10011: begin                         // DEC
+                    // Decryption Operation (Stubbed)
+                    // Decryption would require external modules or detailed implementation
+                    // Here we'll just simulate a no-op
+                    registers[r1] <= registers[r2];
+                end
+                default: ; // No operation for undefined opcodes
+            endcase
+        end
+    end
+
+endmodule
