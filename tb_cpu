@@ -1,0 +1,46 @@
+module tb_cpu;
+
+    reg clk;
+    reg reset;
+    reg [15:0] mem_data_in;
+    reg mem_we;
+    wire [15:0] mem_data_out;
+    wire [15:0] pc;
+
+    cpu uut (
+        .clk(clk),
+        .reset(reset)
+    );
+
+    memory mem (
+        .clk(clk),
+        .addr(uut.pc),
+        .data_in(mem_data_in),
+        .we(mem_we),
+        .data_out(mem_data_out)
+    );
+
+    always #5 clk = ~clk;
+
+    initial begin
+        // Initialize
+        clk = 0;
+        reset = 1;
+        mem_we = 0;
+        #10;
+        reset = 0;
+        
+        // Load program into memory (example program)
+        // Assuming memory addresses 0x0000 to 0x000F are used
+        mem_data_in = 16'h0000; // Example: ADD r1, r2, r3
+        mem_we = 1;
+        #10;
+        mem_we = 0;
+
+        // Continue simulation
+        #100;
+
+        $stop;
+    end
+
+
